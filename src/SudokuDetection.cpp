@@ -112,6 +112,9 @@ void calcCells(const Mat& scanned, const vector<Point>& frame, vector<Mat>& res)
   }
 }
 
+void formatCell(const Mat& cell, int fCount, Mat& formated) {
+}
+
 /*
  * returns the matrix of a soduko
  */
@@ -120,12 +123,25 @@ Mat* scanCells(const vector<Mat>& cells) {
 
   namedWindow("cell" , 1);
   imshow("cell", cells[39]);
+
+  cout << cells[39].size() << endl;
   
   DigitRecognizer dReg;
 
   for(size_t col = 0; col < sudokuSize; ++col) {
     for(size_t row = 0; row < sudokuSize; ++row) {
-      res->at<char>(row, col) = dReg.recognize(cells[row + sudokuSize*col]);
+      Mat formatedCell;
+
+      /*
+      int v = row+sudokuSize*col;
+      std::string name = "testfiles/";
+      name += to_string(v);
+      name += ".jpg";
+      imwrite(name, cells[v]);
+      */
+      
+      formatCell(cells[row + sudokuSize*col], DigitRecognizer::FEATURE_COUNT, formatedCell);
+      res->at<char>(row, col) = dReg.recognize(formatedCell);
     }
   }
   

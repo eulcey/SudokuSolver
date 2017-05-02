@@ -8,18 +8,14 @@
 #include "SudokuDetection.hpp"
 #include "SudokuSolver.hpp"
 
-#define useCamera
+//#define useCamera
 
 using namespace cv;
 using namespace std;
 
-const char* sudokuFile = "/home/mono/workspace/sudoku_solver_opencv/testfiles/sudoku1.png";
+const char* sudokuFile = "/home/mono/workspace/sudoku_solver_opencv/testfiles/sudoku2.png";
 
 const char* windowName = "Sudoku Scanner";
-//const int blockSize = 2;
-//const int apertureSize = 3;
-//const double k = 0.04;
-//const int thresh = 100;
 
 void find_contours(Mat& image, vector<vector<Point>>& contours);
 

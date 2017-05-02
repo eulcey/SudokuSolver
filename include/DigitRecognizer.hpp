@@ -5,6 +5,8 @@
 
 class DigitRecognizer {
 public:
+  static const int FEATURE_COUNT = 400;
+  
   DigitRecognizer()
     : trained(false) {}
   DigitRecognizer(cv::Mat fLayer, cv::Mat secLayer)
@@ -16,6 +18,7 @@ public:
 private:
   bool trained;
   cv::Mat _firstL, _secL;
+  
 };
 
 #endif //DIGIT_RECOGNIZER_HPP

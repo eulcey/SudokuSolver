@@ -8,6 +8,7 @@ void DigitRecognizer::train(const std::vector<cv::Mat> trainingSet) {
 }
 
 int DigitRecognizer::recognize(const cv::Mat& number) {
+  
   return rnd.uniform(0, 100);
 }
 
