@@ -8,7 +8,7 @@
 #include "SudokuDetection.hpp"
 #include "SudokuSolver.hpp"
 
-//#define useCamera
+#define useCamera
 
 using namespace cv;
 using namespace std;
@@ -31,7 +31,7 @@ int main(int, char**) {
 
   Mat scannedMat;
   bool scannedFinished = false;
-  Mat* sudoku;
+  Mat sudoku;
   
   while(!scannedFinished) {
 #ifdef useCamera
@@ -44,11 +44,12 @@ int main(int, char**) {
     }
 #endif // useCamera
 
-    sudoku = detectSudoku(scannedMat);
+    
     
     imshow(windowName, scannedMat);
 
-    if(sudoku) {
+    if(detectSudoku(scannedMat, sudoku)) {
+      cout << "Sudoku detected!" << endl;
       scannedFinished = true;
     }
     
@@ -60,11 +61,16 @@ int main(int, char**) {
 #endif // useCamera
   }
   
-  SudokuSolver solver(*sudoku);
-  const Mat* solvedMat = solver.solve();
-  
-  cout << *solvedMat << endl;
+  if(scannedFinished) {
+    SudokuSolver solver(sudoku);
+    Mat solved;
+    if(solver.solve(solved)) {
 
-  waitKey(0);
+      cout << "Sudoku solved" << endl;
+      cout << solved << endl;
+    
+      waitKey(0);
+    }
+  }
   return 0;
 }

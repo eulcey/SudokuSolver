@@ -3,6 +3,6 @@
 
 #include <opencv2/core/mat.hpp>
 
-cv::Mat* detectSudoku(cv::Mat& scanned);
+bool detectSudoku(cv::Mat& scanned, cv::Mat& sudoku);
 
 #endif // SUDOKU_DETECTION_HPP

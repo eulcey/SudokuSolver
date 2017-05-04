@@ -16,9 +16,9 @@ const int sudokuSize = 9;
 
 void find_contours(Mat& image, vector<vector<Point>>& squares);
 void calcCells(const Mat& scanned, const vector<Point>& frame, vector<Mat>& cells);
-Mat* scanCells(const vector<Mat>& cells);
+bool scanCells(const vector<Mat>& cells, Mat& res);
 
-Mat* detectSudoku(Mat& scanned) {
+bool detectSudoku(Mat& scanned, Mat& sudoku) {
   Mat scannedGrey;
       
   cvtColor(scanned, scannedGrey, CV_BGR2GRAY);
@@ -37,7 +37,6 @@ Mat* detectSudoku(Mat& scanned) {
     }
   }
 
-  Mat* sudoku = 0;
 
   // TODO better test
   if(maxPoly != -1 && contours.size() > 20) { // test if really so whole sudoku was read
@@ -53,9 +52,12 @@ Mat* detectSudoku(Mat& scanned) {
 
     vector<Mat> cells;
     calcCells(scannedGrey(Rect(contours[maxPoly][0], contours[maxPoly][2])), contours[maxPoly], cells);
-    sudoku = scanCells(cells);
+    if(!scanCells(cells, sudoku)) {
+      return false;
+    }
+    return true;
   }
-  return sudoku;
+  return false;
 }
 
 
@@ -118,8 +120,8 @@ void formatCell(const Mat& cell, int fCount, Mat& formated) {
 /*
  * returns the matrix of a soduko
  */
-Mat* scanCells(const vector<Mat>& cells) {
-  Mat* res = new Mat(9, 9, CV_8U);
+bool scanCells(const vector<Mat>& cells, Mat& res) {
+  //  Mat* res = new Mat(9, 9, CV_8U);
 
   namedWindow("cell" , 1);
   imshow("cell", cells[39]);
@@ -127,23 +129,29 @@ Mat* scanCells(const vector<Mat>& cells) {
   cout << cells[39].size() << endl;
   
   DigitRecognizer dReg;
+  if(!loadNN("NN_matrices.xml", dReg)) {
+    cerr << "Couldn't load matrices for DigitRecognizer" << endl;
+    return false;
+  }
+  
 
   for(size_t col = 0; col < sudokuSize; ++col) {
     for(size_t row = 0; row < sudokuSize; ++row) {
       Mat formatedCell;
 
-      /*
+      
       int v = row+sudokuSize*col;
       std::string name = "testfiles/";
       name += to_string(v);
       name += ".jpg";
       imwrite(name, cells[v]);
-      */
+      
       
       formatCell(cells[row + sudokuSize*col], DigitRecognizer::FEATURE_COUNT, formatedCell);
-      res->at<char>(row, col) = dReg.recognize(formatedCell);
+      
+      res.at<char>(row, col) = dReg.recognize(formatedCell);
     }
   }
   
-  return res;
+  return true;
 }

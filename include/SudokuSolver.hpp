@@ -8,7 +8,7 @@ public:
   SudokuSolver(cv::Mat mat)
     : matrix(mat) {}
 
-  const cv::Mat* solve();
+  bool solve(cv::Mat& solved);
 
 private:
   cv::Mat matrix;

@@ -2,6 +2,6 @@
 
 using namespace cv;
 
-const Mat* SudokuSolver::solve() {
-  return &matrix; 
+bool SudokuSolver::solve(Mat& res) {
+  return false;
 }
