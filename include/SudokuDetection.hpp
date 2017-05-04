@@ -3,6 +3,8 @@
 
 #include <opencv2/core/mat.hpp>
 
-bool detectSudoku(cv::Mat& scanned, cv::Mat& sudoku);
+class DigitRecognizer;
+
+bool detectSudoku(cv::Mat& scanned, DigitRecognizer& dReg, cv::Mat& sudoku);
 
 #endif // SUDOKU_DETECTION_HPP

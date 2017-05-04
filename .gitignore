@@ -4,6 +4,6 @@ CMakeFiles
 cmake_install.cmake
 Makefile
 *~
-.#*
-testfiles/
+*#*
+files/
 trainingset/

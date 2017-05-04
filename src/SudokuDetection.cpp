@@ -16,9 +16,9 @@ const int sudokuSize = 9;
 
 void find_contours(Mat& image, vector<vector<Point>>& squares);
 void calcCells(const Mat& scanned, const vector<Point>& frame, vector<Mat>& cells);
-bool scanCells(const vector<Mat>& cells, Mat& res);
+bool scanCells(const vector<Mat>& cells, DigitRecognizer& dReg, Mat& res);
 
-bool detectSudoku(Mat& scanned, Mat& sudoku) {
+bool detectSudoku(Mat& scanned, DigitRecognizer& dReg, Mat& sudoku) {
   Mat scannedGrey;
       
   cvtColor(scanned, scannedGrey, CV_BGR2GRAY);
@@ -43,16 +43,17 @@ bool detectSudoku(Mat& scanned, Mat& sudoku) {
     const Point* pts[1] = {&contours[maxPoly][0]};
     int npt[] = {4};
     polylines(scanned, pts, npt, 1, true, Scalar(0, 0, 255), 3);
+    /*
     for(size_t i = 0; i < contours[maxPoly].size(); ++i) {
       cout << contours[maxPoly][i] << " ";
     }
     cout << endl;
-
+    */
     // cout << "Contour size: " << contours.size() << endl;
 
     vector<Mat> cells;
     calcCells(scannedGrey(Rect(contours[maxPoly][0], contours[maxPoly][2])), contours[maxPoly], cells);
-    if(!scanCells(cells, sudoku)) {
+    if(!scanCells(cells, dReg, sudoku)) {
       return false;
     }
     return true;
@@ -114,26 +115,19 @@ void calcCells(const Mat& scanned, const vector<Point>& frame, vector<Mat>& res)
   }
 }
 
-void formatCell(const Mat& cell, int fCount, Mat& formated) {
-}
 
 /*
  * returns the matrix of a soduko
  */
-bool scanCells(const vector<Mat>& cells, Mat& res) {
+bool scanCells(const vector<Mat>& cells, DigitRecognizer& dReg, Mat& res) {
   //  Mat* res = new Mat(9, 9, CV_8U);
 
   namedWindow("cell" , 1);
   imshow("cell", cells[39]);
 
-  cout << cells[39].size() << endl;
-  
-  DigitRecognizer dReg;
-  if(!loadNN("NN_matrices.xml", dReg)) {
-    cerr << "Couldn't load matrices for DigitRecognizer" << endl;
-    return false;
-  }
-  
+  // cout << cells[39].size() << endl;
+
+  int nrCount = 0;
 
   for(size_t col = 0; col < sudokuSize; ++col) {
     for(size_t row = 0; row < sudokuSize; ++row) {
@@ -147,11 +141,24 @@ bool scanCells(const vector<Mat>& cells, Mat& res) {
       imwrite(name, cells[v]);
       
       
-      formatCell(cells[row + sudokuSize*col], DigitRecognizer::FEATURE_COUNT, formatedCell);
+      if(dReg.processMat(cells[row + sudokuSize*col], formatedCell)) {
+
+      //cout << "formatedcell: " << formatedCell.size() << endl;
+      //      if(formatedCell.rows > 5 && formatedCell.cols > 5) { // test if really a sudokucell is tested
       
-      res.at<char>(row, col) = dReg.recognize(formatedCell);
+	int number = dReg.recognize(formatedCell);
+	if(number > 0) {
+	  ++nrCount;
+	}
+	res.at<char>(row, col) = static_cast<char>(number);
+	//cout << "scanCells Number rec: " << number << endl;
+	//}
+      }
     }
   }
-  
-  return true;
+  if(nrCount > 4) {
+    return true;
+  } else {
+    return false;
+  }
 }

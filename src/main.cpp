@@ -7,14 +7,15 @@
 
 #include "SudokuDetection.hpp"
 #include "SudokuSolver.hpp"
+#include "DigitRecognizer.hpp"
 
-#define useCamera
+//#define useCamera
 
 using namespace cv;
 using namespace std;
 
-const char* sudokuFile = "/home/mono/workspace/sudoku_solver_opencv/testfiles/sudoku2.png";
-
+const char* sudokuFile = "files/sudoku1.png";
+const char* NN_MATRICES_FILE = "files/NN_matrices.xml";
 const char* windowName = "Sudoku Scanner";
 
 void find_contours(Mat& image, vector<vector<Point>>& contours);
@@ -26,12 +27,18 @@ int main(int, char**) {
     std::cerr << "Couldn't open camera" << std::endl;
     return -1;
   }
-
+ 
+  DigitRecognizer dReg;
+  if(!loadNN(NN_MATRICES_FILE, dReg)) {
+    cerr << "Couldn't load matrices for DigitRecognizer" << endl;
+    return -1;
+  }
+  
   namedWindow(windowName, 1);
 
   Mat scannedMat;
   bool scannedFinished = false;
-  Mat sudoku;
+  Mat sudoku(9,9, CV_8U);
   
   while(!scannedFinished) {
 #ifdef useCamera
@@ -48,8 +55,9 @@ int main(int, char**) {
     
     imshow(windowName, scannedMat);
 
-    if(detectSudoku(scannedMat, sudoku)) {
+    if(detectSudoku(scannedMat, dReg, sudoku)) {
       cout << "Sudoku detected!" << endl;
+      cout << sudoku << endl;
       scannedFinished = true;
     }
     

@@ -27,7 +27,7 @@ public:
   void train(const cv::Mat& trainingSet, const cv::Mat& trainingValues);
   int recognize(const cv::Mat& number);
   int saveLayers(const std::string& filename);
-  void processMat(const cv::Mat& im, cv::Mat& res);
+  bool processMat(const cv::Mat& im, cv::Mat& res);
 
 private:
   bool trained;

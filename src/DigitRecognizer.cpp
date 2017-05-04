@@ -78,13 +78,14 @@ void DigitRecognizer::train(const Mat& trainingSet, const Mat& trainingValues) {
 
 int DigitRecognizer::recognize(const Mat& number) {
   Mat testN;
-  processMat(number, testN);
+  //  processMat(number, testN);
   if(!trained) {
     return -1;
   }
   Mat image = number.t();
+  
+  // cout << "size: " << image.size() << " channels" << image.channels() << endl;
   image.push_back(1.0f);
-  //  cout << "size: " << image.size() << " channels: " << image.channels() << endl;
   
   image.convertTo(image, CV_64F);
   Mat firstStep = _firstL * image;
@@ -94,7 +95,7 @@ int DigitRecognizer::recognize(const Mat& number) {
   double min, max;
   Point min_loc, max_loc;
   minMaxLoc(result, &min, &max, &min_loc, &max_loc);
-  // cout << "Predicted value: " << max_loc.y << endl;
+  //cout << "Predicted value: " << max_loc.y << endl;
   
   return max_loc.y;
 }
@@ -129,12 +130,16 @@ bool loadNN(const string& filename, DigitRecognizer& dr) {
   return true;
 }
 
-void DigitRecognizer::processMat(const Mat& im, Mat& res) {
+bool DigitRecognizer::processMat(const Mat& im, Mat& res) {
+  if(im.channels() == 3) {
+    cvtColor(res, res, CV_BGR2GRAY);
+  }
   resize(im, res, Size(DigitRecognizer::NEW_SIDE, DigitRecognizer::NEW_SIDE));
-  cvtColor(res, res, CV_BGR2GRAY);
+  res = res.reshape(1,1);
   res.convertTo(res, CV_32F);
   double minV, maxV;
   minMaxLoc(res, &minV, &maxV);
   res -= maxV/2;
   res /= maxV/2;
+  return true;
 }
