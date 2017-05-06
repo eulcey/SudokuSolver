@@ -62,7 +62,7 @@ int main(int, char**) {
       scannedFinished = true;
     }
     
-    if(waitKey(30) == 'c') {
+    if(waitKey(0) == 'c') {
       break;
     }
 #ifndef useCamera

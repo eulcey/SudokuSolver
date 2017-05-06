@@ -11,12 +11,13 @@
 using namespace cv;
 using namespace std;
 
+namespace sudoku {
 const int thresh = 100;
 const int sudokuSize = 9;
 
-void find_contours(Mat& image, vector<vector<Point>>& squares);
-void calcCells(const Mat& scanned, const vector<Point>& frame, vector<Mat>& cells);
-bool scanCells(const vector<Mat>& cells, DigitRecognizer& dReg, Mat& res);
+  void find_contours(cv::Mat& image, std::vector<std::vector<cv::Point>>& squares);
+  void calcCells(const cv::Mat& scanned, const std::vector<cv::Point>& frame, std::vector<cv::Mat>& cells);
+  bool scanCells(const std::vector<cv::Mat>& cells, DigitRecognizer& dReg, cv::Mat& res);
 
 bool detectSudoku(Mat& scanned, DigitRecognizer& dReg, Mat& sudoku) {
   Mat scannedGrey;
@@ -162,3 +163,5 @@ bool scanCells(const vector<Mat>& cells, DigitRecognizer& dReg, Mat& res) {
     return false;
   }
 }
+
+}; // namespace sudoku

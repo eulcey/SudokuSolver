@@ -76,6 +76,6 @@ namespace sudoku {
       char triedNumbers[9] = {1, 1, 1, 1, 1, 1, 1, 1, 1};
     };
   };
-};
+}; // namespace sudoku
 
 #endif // SUDOKU_SOLVER_HPP

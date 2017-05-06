@@ -7,6 +7,8 @@
 using namespace std;
 using namespace cv;
 
+namespace sudoku {
+  
 const std::string DigitRecognizer::FIRST_NAME = "FirstLayer";
 const std::string DigitRecognizer::SEC_NAME = "SecondLayer";
 const int DigitRecognizer::TRAINING_CYCLES = 2;
@@ -143,3 +145,5 @@ bool DigitRecognizer::processMat(const Mat& im, Mat& res) {
   res /= maxV/2;
   return true;
 }
+
+}; // namespace sudoku

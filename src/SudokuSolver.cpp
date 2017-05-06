@@ -5,7 +5,8 @@
 
 using namespace cv;
 using namespace std;
-using namespace sudoku;
+
+namespace sudoku {
 
 bool isValidBlock(const Mat&);
 bool solved(const Mat&);
@@ -298,3 +299,5 @@ Mat SudokuSolver::Node::getSudoku() {
 
   return res;
 }
+
+}; // namespace sudoku

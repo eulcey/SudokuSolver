@@ -3,6 +3,8 @@
 
 #include <opencv2/core/core.hpp>
 
+namespace sudoku {
+
 class DigitRecognizer {
 public:
   static const int FEATURE_COUNT = 400;
@@ -36,6 +38,8 @@ private:
   cv::Mat sigmoidDer(const cv::Mat&);
 };
 
-bool loadNN(const std::string& filename, DigitRecognizer& dr);
+  bool loadNN(const std::string& filename, DigitRecognizer& dr);
+
+}; // namespace sudoku
 
 #endif //DIGIT_RECOGNIZER_HPP
