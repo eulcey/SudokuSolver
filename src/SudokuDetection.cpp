@@ -8,7 +8,7 @@
 
 #include "DigitRecognizer.hpp"
 
-//#define saveCells
+#define saveCells
 
 using namespace cv;
 using namespace std;

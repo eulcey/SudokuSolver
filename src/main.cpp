@@ -101,7 +101,7 @@ int main(int, char**) {
   val = frequencies[8][8][9];
   cout << "For (8, 8) val 9: " << val << endl;
 
-  vector<int> firstCell = frequencies[0][1];
+  vector<int> firstCell = frequencies[2][0];
   for(size_t i = 0; i < firstCell.size(); ++i) {
     cout << "freq for " << i << " is " << firstCell[i] << endl;
   }

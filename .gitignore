@@ -8,3 +8,4 @@ Makefile
 trainingset/
 testfiles/
 sudokus/
+camera_training/
