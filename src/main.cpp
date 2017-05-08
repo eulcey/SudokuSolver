@@ -9,7 +9,7 @@
 #include "SudokuSolver.hpp"
 #include "DigitRecognizer.hpp"
 
-//#define useCamera
+#define useCamera
 
 using namespace cv;
 using namespace std;
@@ -23,18 +23,19 @@ void find_contours(Mat& image, vector<vector<Point>>& contours);
 
 
 int main(int, char**) {
+#ifdef useCamera
   VideoCapture cap(0);
   if(!cap.isOpened()) {
     std::cerr << "Couldn't open camera" << std::endl;
     return -1;
   }
- 
+#endif // useCamera
   DigitRecognizer dReg;
   if(!loadNN(NN_MATRICES_FILE, dReg)) {
     cerr << "Couldn't load matrices for DigitRecognizer" << endl;
     return -1;
   }
-  
+
   namedWindow(windowName, 1);
 
   Mat scannedMat;
@@ -59,14 +60,16 @@ int main(int, char**) {
     if(detectSudoku(scannedMat, dReg, sudoku)) {
       cout << "Sudoku detected!" << endl;
       cout << sudoku << endl;
-      scannedFinished = true;
+#ifndef useCamera
+      scannedFinished = true; // finish scan if image from file is used
+#endif // useCamera
     }
-    
-    if(waitKey(0) == 'c') {
+    if(waitKey(30) == 'c') {
+      scannedFinished = true;
       break;
     }
 #ifndef useCamera
-    scannedFinished = true;
+    //scannedFinished = true;
 #endif // useCamera
   }
   

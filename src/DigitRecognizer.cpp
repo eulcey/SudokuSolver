@@ -3,15 +3,17 @@
 //#include "opencv2/highgui/highgui.hpp"
 #include <opencv2/imgproc/imgproc.hpp>
 #include <iostream>
+#include <cmath>
 
 using namespace std;
 using namespace cv;
 
 namespace sudoku {
   
-const std::string DigitRecognizer::FIRST_NAME = "FirstLayer";
-const std::string DigitRecognizer::SEC_NAME = "SecondLayer";
-const int DigitRecognizer::TRAINING_CYCLES = 2;
+  const std::string DigitRecognizer::FIRST_NAME = "FirstLayer";
+  const std::string DigitRecognizer::SEC_NAME = "SecondLayer";
+  const int DigitRecognizer::TRAINING_CYCLES = 20000;
+  const int cutOff = 3;
  
 RNG rnd(0);
 
@@ -28,17 +30,20 @@ Mat DigitRecognizer::sigmoidDer(const Mat& m) {
 void DigitRecognizer::train(const Mat& trainingSet, const Mat& trainingValues) {
   
   int count = 0;
+  vector<double> error;
   for(size_t i = 0; i < TRAINING_CYCLES; ++i) {
+    double cycle_error = 0;
     for(size_t imNr = 0; imNr < trainingSet.rows; ++imNr) {
       Mat image = trainingSet.row(imNr);
       transpose(image, image);
-      image.push_back(1.0f);
-      image.convertTo(image, CV_64F);
+      //image.convertTo(image, CV_64F);
+      double bias = 1.0f;
+      image.push_back(bias);
       int number = trainingValues.at<int>(imNr, 0);
       Mat target = Mat::zeros(10, 1, CV_64F);
       //target.at<double>(number, 0) = 1.0;
       ++count;
-      if (count % 200 == 0) {
+      if (count % 200000 == 0) {
 	cout << "Train cycle: " << count << endl;
 	//	cout << _firstL.type() << "*" << image.type() << endl;
 	//	cout << _secL.size() << "*" << (_firstL*image).size() << endl;
@@ -56,6 +61,8 @@ void DigitRecognizer::train(const Mat& trainingSet, const Mat& trainingValues) {
       Mat lOneChange = deltaHidden * image.t();
       _secL += lTwoChange;
       _firstL += lOneChange;
+
+      cycle_error += sqrt(error.dot(error)/error.rows);
       //cout << "deltaOUt: " << deltaOut.size() <<" secLN: " << (_secL).size() << " secLT: " << secT.size() << endl;
       //Mat test = deltaOut * _secL;
       //cout << "test: " << test.size() << endl;
@@ -64,6 +71,7 @@ void DigitRecognizer::train(const Mat& trainingSet, const Mat& trainingValues) {
       //cout << "deltaHidden " << deltaHidden.size() << endl;
       //cout << "hiddenAct" << hiddenAct.size() << endl;
     }
+    error.push_back(cycle_error);
   }
   cout << count << " Images trained" << endl;
   trained = true;
@@ -76,24 +84,30 @@ void DigitRecognizer::train(const Mat& trainingSet, const Mat& trainingValues) {
   Mat d = b * a.t();
   cout << "a: " << a.size() << " b: " << b.size() << " c: " << c.size() << " d: " << d.size() << endl;
   */
+  for(size_t i = 0; i < error.size(); i += 1000) {
+    cout << "Cylce " << i << ": Error: " << error[i] << endl;
+  }
 }
 
 int DigitRecognizer::recognize(const Mat& number) {
   Mat testN;
   //  processMat(number, testN);
   if(!trained) {
+    cerr << "DigitRecognizer not trained!" << endl;
     return -1;
   }
   Mat image = number.t();
   
   // cout << "size: " << image.size() << " channels" << image.channels() << endl;
-  image.push_back(1.0f);
+  double bias = 1.0f;
+  image.push_back(bias);
   
   image.convertTo(image, CV_64F);
   Mat firstStep = _firstL * image;
   Mat hiddenAct = sigmoid(firstStep);
   Mat secondStep = _secL * hiddenAct;
   Mat result = sigmoid(secondStep);
+  //cout << "Recog res: " << result << endl;
   double min, max;
   Point min_loc, max_loc;
   minMaxLoc(result, &min, &max, &min_loc, &max_loc);
@@ -136,9 +150,11 @@ bool DigitRecognizer::processMat(const Mat& im, Mat& res) {
   if(im.channels() == 3) {
     cvtColor(res, res, CV_BGR2GRAY);
   }
-  resize(im, res, Size(DigitRecognizer::NEW_SIDE, DigitRecognizer::NEW_SIDE));
+  //  resize(im, res, Size(DigitRecognizer::NEW_SIDE, DigitRecognizer::NEW_SIDE));
+  res = im(Rect(cutOff, cutOff, im.cols-(cutOff*2), im.rows-(cutOff*2)));
+  resize(res, res, Size(DigitRecognizer::NEW_SIDE, DigitRecognizer::NEW_SIDE));
   res = res.reshape(1,1);
-  res.convertTo(res, CV_32F);
+  res.convertTo(res, CV_64F);
   double minV, maxV;
   minMaxLoc(res, &minV, &maxV);
   res -= maxV/2;

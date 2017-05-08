@@ -38,20 +38,29 @@ bool detectSudoku(Mat& scanned, DigitRecognizer& dReg, Mat& sudoku) {
     }
   }
 
-
+  if(maxPoly != -1 && contours.size() > 20) {
+    Mat copyScanned(scanned);
+    const Point* pts[1] = {&contours[maxPoly][0]};
+    int npt[] = {4};
+    polylines(copyScanned, pts, npt, 1, true, Scalar(0, 0, 255), 10);
+    namedWindow("copy", 1);
+    imshow("copy", copyScanned);
+  }
   // TODO better test
   if(maxPoly != -1 && contours.size() > 20) { // test if really so whole sudoku was read
     const Point* pts[1] = {&contours[maxPoly][0]};
     int npt[] = {4};
-    polylines(scanned, pts, npt, 1, true, Scalar(0, 0, 255), 3);
+    polylines(scanned, pts, npt, 1, true, Scalar(0, 0, 255), 10);
+
     /*
     for(size_t i = 0; i < contours[maxPoly].size(); ++i) {
       cout << contours[maxPoly][i] << " ";
     }
     cout << endl;
+    
+    cout << "Contour size: " << contours.size() << endl;
     */
-    // cout << "Contour size: " << contours.size() << endl;
-
+    
     vector<Mat> cells;
     calcCells(scannedGrey(Rect(contours[maxPoly][0], contours[maxPoly][2])), contours[maxPoly], cells);
     if(!scanCells(cells, dReg, sudoku)) {
@@ -108,8 +117,8 @@ void calcCells(const Mat& scanned, const vector<Point>& frame, vector<Mat>& res)
   int x = rowToCut/2;
   int y = colToCut/2;
   Mat cutScanned = scanned(cv::Rect(y, x, scanned.cols-colToCut, scanned.rows - rowToCut)).clone();
-  for(size_t col = 0; col < cutScanned.cols; col += cutScanned.cols/sudokuSize) {
-    for(size_t row = 0; row < cutScanned.rows; row += cutScanned.rows/sudokuSize) {
+  for(size_t row = 0; row < cutScanned.rows; row += cutScanned.rows/sudokuSize) {
+    for(size_t col = 0; col < cutScanned.cols; col += cutScanned.cols/sudokuSize) {
       res.push_back(cutScanned(cv::Rect(col, row, (cutScanned.cols / sudokuSize),
 				  (cutScanned.rows / sudokuSize))).clone());
     }
@@ -123,26 +132,32 @@ void calcCells(const Mat& scanned, const vector<Point>& frame, vector<Mat>& res)
 bool scanCells(const vector<Mat>& cells, DigitRecognizer& dReg, Mat& res) {
   //  Mat* res = new Mat(9, 9, CV_8U);
 
-  namedWindow("cell" , 1);
-  imshow("cell", cells[39]);
-
+  namedWindow("scanCells Bsp" , 1);
+  imshow("scanCells Bsp", cells[37]);
+  Mat formated;
+  dReg.processMat(cells[37], formated);
+  int testNr = dReg.recognize(formated);
+  cout << "Recognized as: " << testNr << endl;
   // cout << cells[39].size() << endl;
 
   int nrCount = 0;
 
-  for(size_t col = 0; col < sudokuSize; ++col) {
-    for(size_t row = 0; row < sudokuSize; ++row) {
+  for(size_t row = 0; row < sudokuSize; ++row) {
+    for(size_t col = 0; col < sudokuSize; ++col) {
       Mat formatedCell;
+      
+      int v = row*sudokuSize + col;
 
       
-      int v = row+sudokuSize*col;
       std::string name = "testfiles/";
       name += to_string(v);
       name += ".jpg";
       imwrite(name, cells[v]);
+
+      // TODO uncomment for final algorithm
       
       
-      if(dReg.processMat(cells[row + sudokuSize*col], formatedCell)) {
+      if(dReg.processMat(cells[v], formatedCell)) {
 
       //cout << "formatedcell: " << formatedCell.size() << endl;
       //      if(formatedCell.rows > 5 && formatedCell.cols > 5) { // test if really a sudokucell is tested
@@ -155,6 +170,7 @@ bool scanCells(const vector<Mat>& cells, DigitRecognizer& dReg, Mat& res) {
 	//cout << "scanCells Number rec: " << number << endl;
 	//}
       }
+      
     }
   }
   if(nrCount > 4) {
