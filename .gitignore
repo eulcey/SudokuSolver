@@ -5,6 +5,6 @@ cmake_install.cmake
 Makefile
 *~
 *#*
-files/
 trainingset/
 testfiles/
+sudokus/

@@ -15,7 +15,7 @@ using namespace cv;
 using namespace std;
 using namespace sudoku;
 
-const char* sudokuFile = "files/sudoku1.png";
+const char* sudokuFile = "sudokus/sudoku1.png";
 #ifndef useCamera
 const char* NN_MATRICES_FILE = "files/NN_matrices_image.xml";
 #else
