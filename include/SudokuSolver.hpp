@@ -71,7 +71,7 @@ namespace sudoku {
       }
       Node* parent = 0;
       std::vector<std::vector<int>> numberCSP;
-      int actCell;
+      int actCell = -1;
       //std::vector<int> triedNumbers;
       char triedNumbers[9] = {1, 1, 1, 1, 1, 1, 1, 1, 1};
     };

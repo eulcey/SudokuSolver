@@ -12,7 +12,9 @@ namespace sudoku {
   
   const std::string DigitRecognizer::FIRST_NAME = "FirstLayer";
   const std::string DigitRecognizer::SEC_NAME = "SecondLayer";
-  const int DigitRecognizer::TRAINING_CYCLES = 20000;
+  const int DigitRecognizer::TRAINING_CYCLES = 200000;
+  int const max_BINARY_value = 255;
+  const int THRESHOLD_VALUE = 100;
   const int cutOff = 3;
  
 RNG rnd(0);
@@ -41,13 +43,8 @@ void DigitRecognizer::train(const Mat& trainingSet, const Mat& trainingValues) {
       image.push_back(bias);
       int number = trainingValues.at<int>(imNr, 0);
       Mat target = Mat::zeros(10, 1, CV_64F);
-      //target.at<double>(number, 0) = 1.0;
+      target.at<double>(number, 0) = 1.0;
       ++count;
-      if (count % 200000 == 0) {
-	cout << "Train cycle: " << count << endl;
-	//	cout << _firstL.type() << "*" << image.type() << endl;
-	//	cout << _secL.size() << "*" << (_firstL*image).size() << endl;
-      }
       Mat firstStep = _firstL * image;
       Mat hiddenAct = sigmoid(firstStep);
       Mat secondStep = _secL * hiddenAct;
@@ -61,6 +58,17 @@ void DigitRecognizer::train(const Mat& trainingSet, const Mat& trainingValues) {
       Mat lOneChange = deltaHidden * image.t();
       _secL += lTwoChange;
       _firstL += lOneChange;
+
+      if (count % (TRAINING_CYCLES/2) == 0) {
+	cout << "Train cycle: " << count << endl;
+	//	cout << _firstL.type() << "*" << image.type() << endl;
+	//	cout << _secL.size() << "*" << (_firstL*image).size() << endl;
+	/*
+	cout << "For Number " << number << " Target and Result is: " << endl;
+	cout << target.t() << endl;
+	cout << result.t() << endl;
+	*/
+      }
 
       cycle_error += sqrt(error.dot(error)/error.rows);
       //cout << "deltaOUt: " << deltaOut.size() <<" secLN: " << (_secL).size() << " secLT: " << secT.size() << endl;
@@ -84,8 +92,9 @@ void DigitRecognizer::train(const Mat& trainingSet, const Mat& trainingValues) {
   Mat d = b * a.t();
   cout << "a: " << a.size() << " b: " << b.size() << " c: " << c.size() << " d: " << d.size() << endl;
   */
-  for(size_t i = 0; i < error.size(); i += 1000) {
-    cout << "Cylce " << i << ": Error: " << error[i] << endl;
+  for(size_t i = 0; i < error.size(); i += (TRAINING_CYCLES*8)) {
+    int cycle = i * (TRAINING_CYCLES*8);
+    cout << "Cylce " << cycle << ": Error: " << error[i] << endl;
   }
 }
 
@@ -112,7 +121,7 @@ int DigitRecognizer::recognize(const Mat& number) {
   Point min_loc, max_loc;
   minMaxLoc(result, &min, &max, &min_loc, &max_loc);
   //cout << "Predicted value: " << max_loc.y << endl;
-  
+  //cout << "Predicted point: " << min << ", " << max << ", " << min_loc << ", " << max_loc << endl;
   return max_loc.y;
 }
 
@@ -147,12 +156,18 @@ bool loadNN(const string& filename, DigitRecognizer& dr) {
 }
 
 bool DigitRecognizer::processMat(const Mat& im, Mat& res) {
-  if(im.channels() == 3) {
-    cvtColor(res, res, CV_BGR2GRAY);
+  if(im.rows <= 2*cutOff || im.cols <= 2*cutOff) {
+    return false;
   }
-  //  resize(im, res, Size(DigitRecognizer::NEW_SIDE, DigitRecognizer::NEW_SIDE));
-  res = im(Rect(cutOff, cutOff, im.cols-(cutOff*2), im.rows-(cutOff*2)));
+  if(im.channels() == 3) {
+    cvtColor(im, res, CV_BGR2GRAY);
+    res = res(Rect(cutOff, cutOff, im.cols-(2*cutOff), im.rows-(2*cutOff)));
+  } else {
+    res = im(Rect(cutOff, cutOff, im.cols-(2*cutOff), im.rows-(2*cutOff)));
+  }
+  threshold(res, res, THRESHOLD_VALUE, max_BINARY_value, 3 );
   resize(res, res, Size(DigitRecognizer::NEW_SIDE, DigitRecognizer::NEW_SIDE));
+  
   res = res.reshape(1,1);
   res.convertTo(res, CV_64F);
   double minV, maxV;

@@ -183,7 +183,11 @@ bool SudokuSolver::Node::hasDesc() {
 }
 
 SudokuSolver::Node* SudokuSolver::Node::revertStep() {
-  cout << "in reverting " << this->actCell << endl;
+  if(this->actCell == -1) {
+    cout << "trying to revert start" << endl;
+  } else  {
+    cout << "in reverting " << this->actCell << endl;
+  }
   if(!hasOpenNumbers()) {
     cout << "Has no more open numbers, reverting to parent" << endl;
     cout << parent << endl;

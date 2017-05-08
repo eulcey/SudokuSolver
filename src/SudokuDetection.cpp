@@ -8,6 +8,8 @@
 
 #include "DigitRecognizer.hpp"
 
+//#define saveCells
+
 using namespace cv;
 using namespace std;
 
@@ -38,16 +40,20 @@ bool detectSudoku(Mat& scanned, DigitRecognizer& dReg, Mat& sudoku) {
     }
   }
 
-  if(maxPoly != -1 && contours.size() > 20) {
+  /*
+  if(maxPoly != -1 && contours.size() > 10 && maxContourArea > 10000) {
     Mat copyScanned(scanned);
     const Point* pts[1] = {&contours[maxPoly][0]};
     int npt[] = {4};
     polylines(copyScanned, pts, npt, 1, true, Scalar(0, 0, 255), 10);
     namedWindow("copy", 1);
     imshow("copy", copyScanned);
+    //cout << "Max Contour Area: " << maxContourArea << endl;
   }
+  */
+  
   // TODO better test
-  if(maxPoly != -1 && contours.size() > 20) { // test if really so whole sudoku was read
+  if(maxPoly != -1 && contours.size() > 10 && maxContourArea > 10000) { // test if really so whole sudoku was read
     const Point* pts[1] = {&contours[maxPoly][0]};
     int npt[] = {4};
     polylines(scanned, pts, npt, 1, true, Scalar(0, 0, 255), 10);
@@ -62,7 +68,16 @@ bool detectSudoku(Mat& scanned, DigitRecognizer& dReg, Mat& sudoku) {
     */
     
     vector<Mat> cells;
-    calcCells(scannedGrey(Rect(contours[maxPoly][0], contours[maxPoly][2])), contours[maxPoly], cells);
+    Mat sudokuFrame(scannedGrey(Rect(contours[maxPoly][0], contours[maxPoly][2])));
+    calcCells(sudokuFrame, contours[maxPoly], cells);
+
+#ifdef saveCells
+    for(size_t c = 0; c < cells.size(); ++c) {
+      string fname = "camera_training/" + to_string(c) + ".jpg";
+      imwrite(fname, cells[c]);
+    }
+#endif // saveCells
+    
     if(!scanCells(cells, dReg, sudoku)) {
       return false;
     }
@@ -132,13 +147,28 @@ void calcCells(const Mat& scanned, const vector<Point>& frame, vector<Mat>& res)
 bool scanCells(const vector<Mat>& cells, DigitRecognizer& dReg, Mat& res) {
   //  Mat* res = new Mat(9, 9, CV_8U);
 
+  int cutOff = 3;
+  int max_BINARY_value = 255;
+  int THRESHOLD_VALUE = 100;
+  Mat testC = cells[0];
+  
+  if(testC.rows > 2*cutOff & testC.cols > 2*cutOff) {
+  if(testC.channels() == 3) {
+    cvtColor(testC, testC, CV_BGR2GRAY);
+  } 
+  testC = testC(Rect(cutOff, cutOff, testC.cols-(2*cutOff), testC.rows-(2*cutOff)));
+  threshold(testC, testC, THRESHOLD_VALUE, max_BINARY_value, 3 );
+  resize(testC, testC, Size(DigitRecognizer::NEW_SIDE, DigitRecognizer::NEW_SIDE));
+  
+
   namedWindow("scanCells Bsp" , 1);
-  imshow("scanCells Bsp", cells[37]);
+  imshow("scanCells Bsp", testC);
   Mat formated;
-  dReg.processMat(cells[37], formated);
-  int testNr = dReg.recognize(formated);
-  cout << "Recognized as: " << testNr << endl;
-  // cout << cells[39].size() << endl;
+  if(dReg.processMat(cells[0], formated)) {
+    int testNr = dReg.recognize(formated);
+    //cout << "Cell 0 recognized as: " << testNr << endl;
+  }
+  }
 
   int nrCount = 0;
 
@@ -152,17 +182,15 @@ bool scanCells(const vector<Mat>& cells, DigitRecognizer& dReg, Mat& res) {
       std::string name = "testfiles/";
       name += to_string(v);
       name += ".jpg";
-      imwrite(name, cells[v]);
+      imwrite(name, cells[v]);      
 
-      // TODO uncomment for final algorithm
-      
-      
       if(dReg.processMat(cells[v], formatedCell)) {
 
       //cout << "formatedcell: " << formatedCell.size() << endl;
       //      if(formatedCell.rows > 5 && formatedCell.cols > 5) { // test if really a sudokucell is tested
       
 	int number = dReg.recognize(formatedCell);
+
 	if(number > 0) {
 	  ++nrCount;
 	}
