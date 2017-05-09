@@ -7,52 +7,54 @@ namespace sudoku {
   
   class SudokuSolver {
   public:
+
+    // The main class, which tries to solve a given sudoku
+    // Para: mat is a 9x9 matrix, which is an unsolved sudoku
     SudokuSolver(cv::Mat mat)
       : matrix(mat) {}
-    
+
+    // Tries to solve the sudoku given in the constructor
+    // Para: solved is the solved sudoku, if the Solver was able to
+    // Return: bool is true if the sudoku could be solved
     bool solve(cv::Mat& solved);
     
   private:
     cv::Mat matrix;
     
   public:
+
+    // The search tree to solve a sudoku
     class Node {
+      
     public:
       Node(const cv::Mat& m);
-      /*
-       * creates either a child for the next cell
-       * or tries another value for the actual cell
-       * if not all were tried yet
-       */
+      
+      // creates either a child for the next cell
+      // or tries another value for the actual cell
+      // if not all were tried yet
       void getNextStep(Node& child);
-      /*
-       * returns true if node's sudoku is solved
-       */
+      
+      // returns true if node's sudoku is solved
       bool isSolution();
-      /*
-       * returns true if node has children with still possible not tried
-       * numbers, or has itself not tried numbers
-       */
+      
+      // returns true if node has children with still possible not tried
+      // numbers, or has itself not tried numbers
       bool hasDesc();
-      /*
-       * returns the parent node and adds the tried number
-       * to its list
-       */
+      
+      // returns the parent node and adds the tried number
+      // to its list
       Node* revertStep();
-      /*
-       * constrains the domain of every cell
-       * according to the sudoku rules with the other cells
-       */
+      
+      // constrains the domain of every cell
+      // according to the sudoku rules with the other cells
       void constrainDomains();
-      /*
-       * returns the equivalent sudoku of the node
-       * if every domain size <= 1
-       */
+      
+      // returns the equivalent sudoku of the node
+      // if every domain size <= 1
       cv::Mat getSudoku();
-      /*
-       * Constrains the domain of the given cell
-       * returns true if the cell domain could be shortened
-       */
+      
+      // Constrains the domain of the given cell
+      // returns true if the cell domain could be shortened
       bool constrainCell(std::vector<int>& cell, int row, int col);
     private:
       Node(std::vector<std::vector<int>> nrCSP, int nextCell);
@@ -72,7 +74,6 @@ namespace sudoku {
       Node* parent = 0;
       std::vector<std::vector<int>> numberCSP;
       int actCell = -1;
-      //std::vector<int> triedNumbers;
       char triedNumbers[9] = {1, 1, 1, 1, 1, 1, 1, 1, 1};
     };
   };
